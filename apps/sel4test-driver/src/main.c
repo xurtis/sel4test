@@ -21,6 +21,8 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#include <sel4runtime.h>
+
 #include <allocman/bootstrap.h>
 #include <allocman/vka.h>
 
@@ -467,6 +469,13 @@ void *main_continued(void *arg UNUSED)
     /* copy the region list for the process to clone itself */
     memcpy(env.init->elf_regions, elf_regions, sizeof(sel4utils_elf_region_t) * num_elf_regions);
     env.init->num_elf_regions = num_elf_regions;
+
+#ifdef CONFIG_KERNEL_IMAGES
+    /* Copy the kernel image level sizes from bootinfo */
+    seL4_BootInfo *bootinfo = sel4runtime_bootinfo();
+    memcpy(env.init->kernel_image_level_count, bootinfo->kernelImageLevelCount,
+           sizeof(seL4_Word) * seL4_KernelImageNumLevels);
+#endif
 
     /* setup init data that won't change test-to-test */
     env.init->priority = seL4_MaxPrio - 1;

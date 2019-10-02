@@ -96,6 +96,11 @@ typedef struct {
     /* number of available cores */
     seL4_Word cores;
 
+#ifdef CONFIG_KERNEL_IMAGES
+    /* Number of memory objects of each level needed to map a kernel image */
+    seL4_Word         kernel_image_level_count[seL4_KernelImageNumLevels];
+#endif
+
 } test_init_data_t;
 
 compile_time_assert(init_data_fits_in_ipc_buffer, sizeof(test_init_data_t) < PAGE_SIZE_4K);

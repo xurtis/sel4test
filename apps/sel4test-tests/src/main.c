@@ -217,6 +217,12 @@ int main(int argc, char **argv)
 
     env.device_frame = init_data->device_frame_cap;
 
+#ifdef CONFIG_KERNEL_IMAGES
+    /* Copy the kernel image level sizes from bootinfo */
+    memcpy(env.kernel_image_level_count, init_data->kernel_image_level_count,
+           sizeof(seL4_Word) * seL4_KernelImageNumLevels);
+#endif
+
     /* initialse cspace, vspace and untyped memory allocation */
     init_allocator(&env, init_data);
 
