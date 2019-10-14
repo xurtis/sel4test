@@ -131,4 +131,22 @@ static int test_map_kernel_image(env_t env)
 }
 DEFINE_TEST(KERNELIMAGE0001, "Map a kernel image", test_map_kernel_image, config_set(CONFIG_KERNEL_IMAGES))
 
+static int test_clone_kernel_image(env_t env)
+{
+    int error;
+    kernel_image_alloc_t image_alloc = {};
+
+    error = create_kernel_image(env, &image_alloc);
+    test_eq(error, 0);
+
+    error = api_kernel_image_clone(image_alloc.image.cptr, env->kernel_image);
+    test_eq(error, 0);
+
+    error = destroy_kernel_image(env, &image_alloc);
+    test_eq(error, 0);
+
+    return sel4test_get_result();
+}
+DEFINE_TEST(KERNELIMAGE0002, "Clone a kernel image", test_clone_kernel_image, config_set(CONFIG_KERNEL_IMAGES))
+
 #endif /* CONFIG_KERNEL_IMAGES */
