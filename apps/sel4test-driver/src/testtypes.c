@@ -216,6 +216,12 @@ void basic_set_up(uintptr_t e)
                                                                                                               seL4_CapInitThreadASIDPool));
     env->init->asid_ctrl = sel4utils_copy_cap_to_process(&(env->test_process), &env->vka, simple_get_init_cap(&env->simple,
                                                                                                               seL4_CapASIDControl));
+
+#ifdef CONFIG_KERNEL_IMAGES
+    env->init->kernel_image = sel4utils_copy_cap_to_process(&(env->test_process), &env->vka,
+                                                            simple_get_init_cap(&env->simple, seL4_CapInitKernelImage));
+#endif
+
 #ifdef CONFIG_IOMMU
     env->init->io_space = sel4utils_copy_cap_to_process(&(env->test_process), &env->vka, simple_get_init_cap(&env->simple,
                                                                                                              seL4_CapIOSpace));

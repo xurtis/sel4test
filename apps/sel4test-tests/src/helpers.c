@@ -207,6 +207,9 @@ void create_helper_process_custom_asid(env_t env, helper_thread_t *thread, seL4_
     config = process_config_create_vspace(config, env->regions, env->num_regions);
     vka_object_t fault_endpoint = { .cptr = env->endpoint };
     config = process_config_fault_endpoint(config, fault_endpoint);
+#ifdef CONFIG_KERNEL_IMAGES
+    config = process_config_kernel_image(config, env->kernel_image);
+#endif
     error = sel4utils_configure_process_custom(&thread->process, &env->vka, &env->vspace,
                                                config);
     assert(error == 0);

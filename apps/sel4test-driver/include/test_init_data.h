@@ -39,6 +39,10 @@ typedef struct {
     /* asid pool cap for the test process to use when creating new processes */
     seL4_CPtr asid_pool;
     seL4_CPtr asid_ctrl;
+#ifdef CONFIG_KERNEL_IMAGES
+    /* Copy of the initial kernel image capability for cloning kernel images*/
+    seL4_CPtr kernel_image;
+#endif
 #ifdef CONFIG_IOMMU
     seL4_CPtr io_space;
 #endif /* CONFIG_IOMMU */
