@@ -113,4 +113,10 @@ if(NOT Sel4testAllowSettingsOverride)
         set(KernelIsMCS OFF CACHE BOOL "" FORCE)
     endif()
 
+    if(KERNEL_IMAGES)
+        set(KernelImages ON CACHE BOOL "" FORCE)
+    else()
+        set(KernelImages OFF CACHE BOOL "" FORCE)
+    endif()
+
 endif()
