@@ -149,4 +149,35 @@ static int test_clone_kernel_image(env_t env)
 }
 DEFINE_TEST(KERNELIMAGE0002, "Clone a kernel image", test_clone_kernel_image, config_set(CONFIG_KERNEL_IMAGES))
 
+static int test_kernel_image_bind_vspace(env_t env)
+{
+    int error;
+    kernel_image_alloc_t image_alloc = {};
+    vka_object_t vspace = {};
+
+    error = create_kernel_image(env, &image_alloc);
+    test_eq(error, 0);
+
+    error = vka_alloc_vspace_root(&env->vka, &vspace);
+    test_eq(error, 0);
+
+    error = seL4_ARCH_ASIDPool_Assign(env->asid_pool, vspace.cptr);
+    test_eq(error, 0);
+
+    error = api_kernel_image_clone(image_alloc.image.cptr, env->kernel_image);
+    test_eq(error, 0);
+
+    error = api_kernel_image_bind(image_alloc.image.cptr, vspace.cptr);
+    test_eq(error, 0);
+
+    vka_free_object(&env->vka, &vspace);
+
+    error = destroy_kernel_image(env, &image_alloc);
+    test_eq(error, 0);
+
+    return sel4test_get_result();
+}
+DEFINE_TEST(KERNELIMAGE0003, "Bind a VSpace to a kernel image", test_kernel_image_bind_vspace,
+            config_set(CONFIG_KERNEL_IMAGES))
+
 #endif /* CONFIG_KERNEL_IMAGES */
