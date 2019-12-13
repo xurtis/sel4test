@@ -1369,4 +1369,86 @@ static int test_sched_donation_cross_core(env_t env)
 }
 DEFINE_TEST(IPC0028, "Cross core sched donation", test_sched_donation_cross_core,
             config_set(CONFIG_KERNEL_MCS) &&config_set(CONFIG_MAX_NUM_NODES) &&CONFIG_MAX_NUM_NODES > 1);
+
+static int ipc29_client_fn(seL4_CPtr ep)
+{
+    seL4_Send(ep, seL4_MessageInfo_new(0, 0, 0, 0));
+    return 0;
+}
+
+static int ipc29_server_fn(seL4_CPtr ep)
+{
+    seL4_Wait(ep, NULL);
+    return 0;
+}
+
+static int test_bind_on_blocked_thread(env_t env)
+{
+    seL4_CPtr ep = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr unconfigured_sc = vka_alloc_sched_context_leaky(&env->vka);
+    helper_thread_t client;
+    helper_thread_t server;
+
+    seL4_TCB_SetPriority(env->tcb, env->tcb, 9);
+
+    /* Create server */
+    create_helper_thread(env, &server);
+    set_helper_priority(env, &server, 10);
+
+    /* Create client */
+    create_helper_thread(env, &client);
+    set_helper_priority(env, &client, 10);
+
+    /* Start server */
+    start_helper(env, &server, (helper_fn_t) ipc29_server_fn, ep, 0, 0, 0);
+
+    /* Unbind blocked SC */
+    int error = api_sc_unbind(get_helper_sched_context(&server));
+    test_eq(error, seL4_NoError);
+
+    /* Bind an SC that is not configured */
+    api_sc_bind(unconfigured_sc, server.thread.tcb.cptr);
+
+    /* Start client to send IPC */
+    start_helper(env, &client, (helper_fn_t) ipc29_client_fn, ep, 0, 0, 0);
+
+    /* With any luck this should not have crashed */
+    return sel4test_get_result();
+}
+DEFINE_TEST(IPC0029, "Binding to blocked threads", test_bind_on_blocked_thread, config_set(CONFIG_KERNEL_MCS));
+
+static int test_unconfigured_ntfn_sc(env_t env)
+{
+    seL4_CPtr ntfn = vka_alloc_notification_leaky(&env->vka);
+    seL4_CPtr unconfigured_sc = vka_alloc_sched_context_leaky(&env->vka);
+    helper_thread_t client;
+    helper_thread_t server;
+
+    seL4_TCB_SetPriority(env->tcb, env->tcb, 9);
+
+    /* Create server */
+    create_helper_thread(env, &server);
+    set_helper_priority(env, &server, 10);
+
+    /* Create client */
+    create_helper_thread(env, &client);
+    set_helper_priority(env, &client, 10);
+
+    /* Bind an SC that is not configured */
+    api_sc_bind(unconfigured_sc, ntfn);
+
+    /* start server */
+    start_helper(env, &server, (helper_fn_t) ipc29_server_fn, ntfn, 0, 0, 0);
+
+    /* Unbind blocked SC */
+    int error = api_sc_unbind(get_helper_sched_context(&server));
+    test_eq(error, seL4_NoError);
+
+    /* Start client to send IPC */
+    start_helper(env, &client, (helper_fn_t) ipc29_client_fn, ntfn, 0, 0, 0);
+
+    /* With any luck this should not have crashed */
+    return sel4test_get_result();
+}
+DEFINE_TEST(IPC0030, "IPC on notification with unconfigured SC", test_unconfigured_ntfn_sc, config_set(CONFIG_KERNEL_MCS));
 #endif /* CONFIG_KERNEL_MCS */
