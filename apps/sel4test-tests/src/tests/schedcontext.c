@@ -353,10 +353,10 @@ static void sched_context0008_server_fn(seL4_CPtr init_ep, seL4_CPtr wait_ep)
 static int test_delete_sendwait_tcb(env_t env)
 {
     helper_thread_t client, proxy, server;
-    seL4_CPtr client_send = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr client_send = vka_alloc_donating_endpoint_leaky(&env->vka);
     seL4_CPtr client_wait = vka_alloc_endpoint_leaky(&env->vka);
-    seL4_CPtr proxy_send = vka_alloc_endpoint_leaky(&env->vka);
-    seL4_CPtr server_ep = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr proxy_send = vka_alloc_donating_endpoint_leaky(&env->vka);
+    seL4_CPtr server_ep = vka_alloc_donating_endpoint_leaky(&env->vka);
 
     /* set up and start server */
     ZF_LOGD("Create server\n");
@@ -424,7 +424,7 @@ int test_sched_context_goes_to_to_caller_on_reply_cap_delete(env_t env)
     int prev_state = state;
     int error;
 
-    ep = vka_alloc_endpoint_leaky(&env->vka);
+    ep = vka_alloc_donating_endpoint_leaky(&env->vka);
     test_neq(ep, (seL4_CPtr) seL4_CapNull);
 
     reply = vka_alloc_reply_leaky(&env->vka);
@@ -477,7 +477,7 @@ int test_sched_context_unbind_server(env_t env)
     volatile int state = 0;
     int prev_state = state;
 
-    seL4_CPtr ep = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr ep = vka_alloc_donating_endpoint_leaky(&env->vka);
     test_neq(ep, (seL4_CPtr) seL4_CapNull);
 
     seL4_CPtr reply = vka_alloc_reply_leaky(&env->vka);
@@ -539,8 +539,8 @@ int test_revoke_reply_on_call_chain_returns_sc(env_t env)
     volatile int state = 0;
     int error;
 
-    seL4_CPtr ep = vka_alloc_endpoint_leaky(&env->vka);
-    seL4_CPtr ep2 = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr ep = vka_alloc_donating_endpoint_leaky(&env->vka);
+    seL4_CPtr ep2 = vka_alloc_donating_endpoint_leaky(&env->vka);
     seL4_CPtr proxy_reply = vka_alloc_reply_leaky(&env->vka);
     seL4_CPtr server_reply = vka_alloc_reply_leaky(&env->vka);
 
@@ -588,8 +588,8 @@ test_revoke_reply_on_call_chain_unordered(env_t env)
     volatile int state = 0;
     int error;
 
-    seL4_CPtr ep = vka_alloc_endpoint_leaky(&env->vka);
-    seL4_CPtr ep2 = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr ep = vka_alloc_donating_endpoint_leaky(&env->vka);
+    seL4_CPtr ep2 = vka_alloc_donating_endpoint_leaky(&env->vka);
     seL4_CPtr proxy_reply = vka_alloc_reply_leaky(&env->vka);
     seL4_CPtr server_reply = vka_alloc_reply_leaky(&env->vka);
 

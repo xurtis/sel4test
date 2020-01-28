@@ -1013,8 +1013,8 @@ static int test_timeout_fault_nested_servers(env_t env)
     seL4_Word server_badge = 2;
     seL4_Word proxy_badge = 3;
 
-    seL4_CPtr client_proxy_ep = vka_alloc_endpoint_leaky(&env->vka);
-    seL4_CPtr proxy_server_ep = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr client_proxy_ep = vka_alloc_donating_endpoint_leaky(&env->vka);
+    seL4_CPtr proxy_server_ep = vka_alloc_donating_endpoint_leaky(&env->vka);
     seL4_CPtr tfep = vka_alloc_endpoint_leaky(&env->vka);
     seL4_CPtr proxy_ro = vka_alloc_reply_leaky(&env->vka);
     seL4_CPtr server_ro = vka_alloc_reply_leaky(&env->vka);

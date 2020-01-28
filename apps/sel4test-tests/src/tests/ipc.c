@@ -551,14 +551,14 @@ static int single_client_server_chain_test(env_t env, int fastpath, int prio_dif
     create_helper_thread(env, &client);
     set_helper_priority(env, &client, client_prio);
 
-    seL4_CPtr receive_endpoint = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr receive_endpoint = vka_alloc_donating_endpoint_leaky(&env->vka);
     seL4_CPtr first_endpoint = receive_endpoint;
 
     /* create proxies */
     for (int i = 0; i < num_proxies; i++) {
         int prio = server_prio + (prio_diff * i);
         proxy_state[i] = 0;
-        seL4_CPtr call_endpoint = vka_alloc_endpoint_leaky(&env->vka);
+        seL4_CPtr call_endpoint = vka_alloc_donating_endpoint_leaky(&env->vka);
         create_helper_thread(env, &proxies[i]);
         set_helper_priority(env, &proxies[i], prio);
         ZF_LOGD("Start proxy\n");
@@ -678,7 +678,7 @@ static int test_transfer_on_reply(env_t env)
     volatile int state = 1;
     helper_thread_t client, server;
 
-    seL4_CPtr endpoint = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr endpoint = vka_alloc_donating_endpoint_leaky(&env->vka);
     create_helper_thread(env, &client);
     create_helper_thread(env, &server);
 
@@ -969,7 +969,7 @@ static int test_fault_handler_donated_sc(env_t env)
     helper_thread_t handler, faulter;
     void *vaddr = NULL;
 
-    seL4_CPtr endpoint = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr endpoint = vka_alloc_donating_endpoint_leaky(&env->vka);
     reservation_t res = vspace_reserve_range(&env->vspace, PAGE_SIZE_4K, seL4_AllRights, 1, &vaddr);
     test_check(vaddr != NULL);
 
@@ -1033,7 +1033,7 @@ static void ipc22_server_fn(seL4_CPtr init_ep, seL4_CPtr reply_cap)
 static void ipc22_stack_spawner_fn(env_t env, seL4_CPtr endpoint, int server_prio, seL4_Word unused)
 {
     helper_thread_t servers[RUNS];
-    seL4_CPtr init_ep = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr init_ep = vka_alloc_donating_endpoint_leaky(&env->vka);
 
     /* first we signal to endpoint to tell the test runner we are ready */
     seL4_CPtr first_ep = endpoint;
@@ -1070,7 +1070,7 @@ static int test_stack_spawning_server(env_t env)
 {
     helper_thread_t clients[RUNS];
     helper_thread_t stack_spawner;
-    seL4_CPtr endpoint = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr endpoint = vka_alloc_donating_endpoint_leaky(&env->vka);
     ipc22_go = vka_alloc_endpoint_leaky(&env->vka);
     volatile int state = 0;
     int our_prio = 10;
@@ -1149,8 +1149,8 @@ static int test_delete_reply_cap_sc(env_t env)
 {
     helper_thread_t client, server;
     volatile int state = 0;
-    seL4_CPtr client_ep = vka_alloc_endpoint_leaky(&env->vka);
-    seL4_CPtr server_ep = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr client_ep = vka_alloc_donating_endpoint_leaky(&env->vka);
+    seL4_CPtr server_ep = vka_alloc_donating_endpoint_leaky(&env->vka);
 
     create_helper_thread(env, &client);
     create_helper_thread(env, &server);
@@ -1193,8 +1193,8 @@ static int test_delete_reply_cap_then_sc(env_t env)
     helper_thread_t client, server;
     volatile int state = 0;
 
-    seL4_CPtr client_ep = vka_alloc_endpoint_leaky(&env->vka);
-    seL4_CPtr server_ep = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr client_ep = vka_alloc_donating_endpoint_leaky(&env->vka);
+    seL4_CPtr server_ep = vka_alloc_donating_endpoint_leaky(&env->vka);
 
     create_helper_thread(env, &client);
     create_helper_thread(env, &server);
@@ -1257,7 +1257,7 @@ static int
 test_sched_donation_low_prio_server(env_t env)
 {
     helper_thread_t client, server, server2;
-    seL4_CPtr ep = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr ep = vka_alloc_donating_endpoint_leaky(&env->vka);
 
     create_helper_thread(env, &client);
     create_helper_thread(env, &server);
@@ -1324,7 +1324,7 @@ static int ipc28_client_fn(seL4_CPtr ep, volatile int *state)
 
 static int test_sched_donation_cross_core(env_t env)
 {
-    seL4_CPtr ep = vka_alloc_endpoint_leaky(&env->vka);
+    seL4_CPtr ep = vka_alloc_donating_endpoint_leaky(&env->vka);
     helper_thread_t clients[env->cores - 1];
     helper_thread_t server;
     volatile int states[env->cores - 1];
