@@ -180,4 +180,70 @@ static int test_kernel_image_bind_vspace(env_t env)
 DEFINE_TEST(KERNELIMAGE0003, "Bind a VSpace to a kernel image", test_kernel_image_bind_vspace,
             config_set(CONFIG_KERNEL_IMAGES))
 
+static void kernel_image_execute_helper(seL4_CPtr ep)
+{
+    ZF_LOGD("Sending from new kernel image");
+    /* Signal to the other thread that we have executed */
+    seL4_Send(ep, seL4_MessageInfo_new(0, 0, 0, 0));
+    ZF_LOGD("Blocking from new kernel image");
+    /* Block indefinitely */
+    seL4_Wait(ep, NULL);
+}
+
+static int test_kernel_image_execute(env_t env)
+{
+    int error;
+    kernel_image_alloc_t image_alloc = {};
+    vka_object_t vspace = {};
+    vka_object_t endpoint = {};
+    helper_thread_t thread;
+
+    /* Create the new kernel image */
+    error = create_kernel_image(env, &image_alloc);
+    test_assert_fatal(error == 0);
+
+    /* Clone the kernel image */
+    error = api_kernel_image_clone(image_alloc.image.cptr, env->kernel_image);
+    test_assert_fatal(error == 0);
+
+    /* Create a new process with new kernel image */
+    ZF_LOGD("Creating helper process");
+    sel4utils_process_config_t config = helper_process_default_config(env, &thread);
+    config = process_config_kernel_image(config, image_alloc.image.cptr);
+    helper_process_finalise_creation(env, &thread, config);
+
+    /* Create the endpoint */
+    error = vka_alloc_endpoint(&env->vka, &endpoint);
+    test_assert_fatal(error == 0);
+    seL4_Poll(endpoint.cptr, NULL);
+
+    /* Copy endpoint to process */
+    cspacepath_t path;
+    vka_cspace_make_path(&env->vka, endpoint.cptr, &path);
+    seL4_CPtr thread_ep = sel4utils_copy_path_to_process(&thread.process, path);
+    assert(thread_ep != -1);
+
+    /* Start the helper executing */
+    ZF_LOGD("Starting thread with new kernel image");
+    start_helper(env, &thread, (helper_fn_t)kernel_image_execute_helper, thread_ep, 0, 0, 0);
+    seL4_Poll(endpoint.cptr, NULL);
+
+    /* Wait for the helper */
+    seL4_Poll(endpoint.cptr, NULL);
+    seL4_Poll(endpoint.cptr, NULL);
+    seL4_Poll(endpoint.cptr, NULL);
+    ZF_LOGD("Waiting for helper on endpoint #%lu", endpoint.cptr);
+    seL4_Wait(endpoint.cptr, NULL);
+
+    /* Clean up */
+    cleanup_helper(env, &thread);
+    vka_free_object(&env->vka, &endpoint);
+    error = destroy_kernel_image(env, &image_alloc);
+    test_assert_fatal(error == 0);
+
+    return sel4test_get_result();
+}
+DEFINE_TEST(KERNELIMAGE0004, "Execute a thread on a kernel image", test_kernel_image_execute,
+            config_set(CONFIG_KERNEL_IMAGES))
+
 #endif /* CONFIG_KERNEL_IMAGES */
