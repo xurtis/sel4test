@@ -191,25 +191,32 @@ int are_tcbs_distinct(seL4_CPtr tcb1, seL4_CPtr tcb2)
     return 0;
 }
 
-void create_helper_process_custom_asid(env_t env, helper_thread_t *thread, seL4_CPtr asid)
+sel4utils_process_config_t helper_process_default_config(env_t env, helper_thread_t *thread)
 {
     UNUSED int error;
-
     error = vka_alloc_endpoint(&env->vka, &thread->local_endpoint);
     assert(error == 0);
 
     thread->is_process = true;
 
     sel4utils_process_config_t config = process_config_default_simple(&env->simple, "", OUR_PRIO - 1);
-    config = process_config_asid_pool(config, asid);
+    config = process_config_asid_pool(config, env->asid_pool);
     config = process_config_noelf(config, NULL, 0);
     config = process_config_create_cnode(config, TEST_PROCESS_CSPACE_SIZE_BITS);
     config = process_config_create_vspace(config, env->regions, env->num_regions);
     vka_object_t fault_endpoint = { .cptr = env->endpoint };
     config = process_config_fault_endpoint(config, fault_endpoint);
 #ifdef CONFIG_KERNEL_IMAGES
+    config = process_config_kiid_table(config, env->kiid_table);
     config = process_config_kernel_image(config, env->kernel_image);
 #endif
+
+    return config;
+}
+
+void helper_process_finalise_creation(env_t env, helper_thread_t *thread, sel4utils_process_config_t config)
+{
+    UNUSED int error;
     error = sel4utils_configure_process_custom(&thread->process, &env->vka, &env->vspace,
                                                config);
     assert(error == 0);
@@ -226,6 +233,13 @@ void create_helper_process_custom_asid(env_t env, helper_thread_t *thread, seL4_
 
     thread->thread = thread->process.thread;
     assert(error == 0);
+}
+
+void create_helper_process_custom_asid(env_t env, helper_thread_t *thread, seL4_CPtr asid)
+{
+    sel4utils_process_config_t config = helper_process_default_config(env, thread);
+    config = process_config_asid_pool(config, asid);
+    helper_process_finalise_creation(env, thread, config);
 }
 
 void create_helper_process(env_t env, helper_thread_t *thread)
