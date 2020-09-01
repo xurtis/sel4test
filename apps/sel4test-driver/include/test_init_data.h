@@ -42,6 +42,8 @@ typedef struct {
 #ifdef CONFIG_KERNEL_IMAGES
     /* Copy of the initial kernel image capability for cloning kernel images*/
     seL4_CPtr kernel_image;
+    /* Copy of the kernel ID table for allocating new kernel images */
+    seL4_CPtr kiid_table;
 #endif
 #ifdef CONFIG_IOMMU
     seL4_CPtr io_space;

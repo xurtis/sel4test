@@ -218,6 +218,8 @@ void basic_set_up(uintptr_t e)
                                                                                                               seL4_CapASIDControl));
 
 #ifdef CONFIG_KERNEL_IMAGES
+    env->init->kiid_table = sel4utils_copy_cap_to_process(&(env->test_process), &env->vka,
+                                                          simple_get_init_cap(&env->simple, seL4_CapKIIDTable));
     env->init->kernel_image = sel4utils_copy_cap_to_process(&(env->test_process), &env->vka,
                                                             simple_get_init_cap(&env->simple, seL4_CapInitKernelImage));
 #endif

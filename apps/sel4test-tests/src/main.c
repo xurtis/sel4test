@@ -204,6 +204,7 @@ int main(int argc, char **argv)
     env.asid_ctrl = init_data->asid_ctrl;
     env.sched_ctrl = init_data->sched_ctrl;
 #ifdef CONFIG_KERNEL_IMAGES
+    env.kiid_table = init_data->kiid_table;
     env.kernel_image = init_data->kernel_image;
 #endif
 #ifdef CONFIG_IOMMU
